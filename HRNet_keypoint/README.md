@@ -1,6 +1,6 @@
 #### HRNet을 활용하여 keypoint를 추정하는 모델입니다.
 * 제출에 사용한 config 파일 : w48_384x288_adam_lr1e-3_02.yaml
-* 기본적으로 train 및 test 결과는 output 폴더 안에 있으니 참고하시기 바랍니다.
+* 기본적으로 train 및 test 결과는 output 폴더 안에 생
 
 #### 앞의 Readme.md의 환경 셋팅을 마친 뒤 train과 test는 다음과 같이 하면 됩니다.(앞의 Readme.md의 방법대로 하셔도 됩니다)
 * --cfg : config 파일을 의미합니다. config 파일에서 각종 파라미터를 수정할 수 있습니다.
