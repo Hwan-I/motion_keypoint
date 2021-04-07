@@ -8,6 +8,8 @@
 * --test_option : 데이터를 train, valid, test로 나누는 옵션입니다. 
   * True : 10%를 test 데이터로 따로 빼며 나머지 데이터에서 config 파일에 명시된 TEST_RATIO 변수를 기준으로 train과 valid를 나눕니다.
   * False : test 데이터 없이 config 파일에 명시된 TEST_RATIO 변수를 기준으로 train과 valid를 나눕니다.
+* 아래 예시는 Private Score를 만드는데 사용한 코드입니다.
+
 ```
 python tools/train.py --cfg experiments/coco/hrnet/w48_384x288_adam_lr1e-3_03_origin.yaml --test_option False
 ```
@@ -16,6 +18,8 @@ python tools/train.py --cfg experiments/coco/hrnet/w48_384x288_adam_lr1e-3_03_or
 * --cfg : config 파일을 의미합니다.
 * --output_path : model_best.pth 등 파라미터 값과 결과가 저장된 폴더 위치를 의미합니다. output 이후의 경로부터 쓰시면 됩니다.
 * test 결과는 output_path로 나옵니다.
+* 아래 예시는 Private Score를 만드는데 사용한 코드입니다.
+
 ```
 python tools/test.py --cfg experiments/coco/hrnet/w48_384x288_adam_lr1e-3.yaml --output_path output/lr_0.001/coco/pose_hrnet/w48_384x288_adam_lr1e-3_03_origin
 ```
