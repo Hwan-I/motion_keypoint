@@ -88,6 +88,7 @@ ${POSE_ROOT}
 ### Train and Test
 #### Train : 아래의 코드를 실행시키면 됩니다.
 * --cfg : config 파일을 의미합니다. config 파일에서 각종 파라미터를 수정할 수 있습니다.
+  * config 파일 위치 : ${POSE_ROOT}/experiments (coco dataset를 쓴다면 ${POSE_ROOT}/experiments/coco/hrnet의 config 파일을 쓰시면 됩니다)
 * --test_option : 데이터를 train, valid, test로 나누는 옵션입니다. 
   * True : 10%를 test 데이터로 따로 빼며 나머지 데이터에서 config 파일에 명시된 TEST_RATIO 변수를 기준으로 train과 valid를 나눕니다.
   * False : test 데이터 없이 config 파일에 명시된 TEST_RATIO 변수를 기준으로 train과 valid를 나눕니다.
