@@ -96,6 +96,12 @@ def parse_args():
 
 
 def main():
+    
+    # 주요 path 정의
+    data_path = './data'    
+    imgs = os.listdir(f'{data_path}/images/test_imgs/')
+    
+    # config 파일을 가져옵니다.
     args = parse_args()
     update_config(cfg, args)
 
@@ -105,26 +111,27 @@ def main():
     torch.backends.cudnn.deterministic = cfg.CUDNN.DETERMINISTIC
     torch.backends.cudnn.enabled = cfg.CUDNN.ENABLED
     
-    
-    data_path = './data'
     batch_size = cfg.TEST.BATCH_SIZE_PER_GPU
     output_path = cfg.output_path
     
+    # model 정의
     model = eval('models.'+cfg.MODEL.NAME+'.get_pose_net')(
         cfg, is_train=False
     )
     
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     model = model.to(device)
+    
+    # 모델의 가중치 값을 가져옵니다.
     model.load_state_dict(torch.load(output_path+'/model_best.pth'))
     
-    # Data loading code
+    # Data transforms
     normalize = transforms.Normalize(
         mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
     )
+
     
-    imgs = os.listdir(f'{data_path}/images/test_imgs/')
-    
+    # test dataset을 만듭니다.
     test_dataset = TestDataset(cfg=cfg, root=data_path, image_set = imgs,
                          is_train = False, phase='test',
                          transform= transforms.Compose([
@@ -136,16 +143,14 @@ def main():
 
     
     # evaluate on validation set
-    
     y_pred = np.array([])
-
-    #y_box = np.array([])
+    
     filenames = []
     with torch.no_grad():
         
         
         for i, (input,  meta) in enumerate(test_loader):
-            # compute output
+
             input = input.to(device)
             input = input.float()
     
@@ -155,15 +160,16 @@ def main():
             else:
                 output = outputs
 
-           #num_images = input.size(0)
-
+            # meta 데이터에서 image의 center값, scale 값을 불러옵니다.
             c = meta['center'].numpy()
             s = meta['scale'].numpy()
-    
+            
+            # heatmap을 다시 변형시켜 keypoint 값으로 바꿉니다
             preds, maxvals = get_final_preds(
                 cfg, output.clone().cpu().numpy(), c, s)
     
     
+            # 예측값 정리하는 부분
             preds = preds.reshape(preds.shape[0],-1)
     
             if len(y_pred) == 0:
@@ -173,7 +179,8 @@ def main():
                 y_pred = np.r_[y_pred, preds]
 
             filenames += meta['filename']
-
+    
+    # 최종 test data에 대한 keypoint 결과를 저장합니다.
     df_sub = pd.read_csv(f'{data_path}/sample_submission.csv')
     df = pd.DataFrame(columns=df_sub.columns)
     df['image'] = filenames

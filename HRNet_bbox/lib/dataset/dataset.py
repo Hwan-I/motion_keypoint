@@ -29,24 +29,21 @@ class Dataset(data_utils.Dataset):
         # Read an image with OpenCV
         img = cv2.imread(os.path.join(self.data_dir, self.imgs[idx]))
         bbox = self.bbox[idx]
-        """
-        if self.data_transforms:
-            augmented = self.data_transforms[self.phase](image=img, keypoints=keypoints, class_labels=self.class_labels)
-            img = augmented['image']
-            keypoints = augmented['keypoints']
-        """
-
+        
+        # transform이 있을 경우 이를 적용합니다.
         if self.data_transforms:
             augmented = self.data_transforms[self.phase](image=img, bboxes=bbox, class_labels=self.class_labels)
             img = augmented['image']
             bbox = augmented['bboxes']
-
+        
+        # bbox 객체를 정리합니다.
+            # 형태 : [min_x, min_y, max_x, max_y]
         bbox = list(bbox[0])
 
         bbox[2] = bbox[0] + bbox[2]
         bbox[3] = bbox[1] + bbox[3]
         bbox = np.array(bbox)
-
+        
         if type(img) != np.ndarray :
             img = img.numpy()
         
@@ -54,49 +51,7 @@ class Dataset(data_utils.Dataset):
     
     def __len__(self):
         return len(self.imgs)
-'''
 
-class Dataset(data_utils.Dataset):
-    """__init__ and __len__ functions are the same as in TorchvisionDataset"""
-    def __init__(self, data_dir, imgs, keypoints, phase, class_labels=None, data_transforms=None):
-        self.data_dir = data_dir
-        self.imgs = imgs
-        self.keypoints = keypoints
-        self.phase = phase
-        self.class_labels = class_labels
-        self.data_transforms = data_transforms
-
-    def __getitem__(self, idx):
-        # Read an image with OpenCV
-        img = cv2.imread(os.path.join(self.data_dir, self.imgs[idx]))
-        keypoints = self.keypoints[idx]
-        """
-        if self.data_transforms:
-            augmented = self.data_transforms[self.phase](image=img, keypoints=keypoints, class_labels=self.class_labels)
-            img = augmented['image']
-            keypoints = augmented['keypoints']
-        """
-        if self.data_transforms:
-            augmented = self.data_transforms[self.phase](image=img, keypoints=keypoints, class_labels=self.class_labels)
-            img = augmented['image']
-            keypoints = augmented['keypoints']
-        
-        
-        keypoints = np.array(keypoints)
-        
-        x_min, y_min = np.min(keypoints, 0)
-        x_max, y_max = np.max(keypoints, 0)
-        boxes = np.array([x_min, y_min, x_max, y_max])
-
-        if type(img) != np.ndarray :
-            img = img.numpy()
-        
-        return img, boxes, keypoints.flatten()
-    
-    def __len__(self):
-        return len(self.imgs)
-
-'''
 
 
 class TestDataset(data_utils.Dataset):
