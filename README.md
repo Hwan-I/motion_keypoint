@@ -35,7 +35,7 @@ pip install -U git+https://github.com/albumentations-team/albumentations
 3. 가중치 파일 다운로드 : bbox, keypoint 둘 다 같으며, 아래에서 사용할 가중치 파일을 [Google](https://drive.google.com/drive/folders/1hOTihvbyIxsm5ygDpbUuJ7O_tzv4oXjC) 또는 [OneDrive](https://onedrive.live.com/?cid=56b9f9c97f261712&id=56B9F9C97F261712%2111773&authkey=%21AEwfaSueYurmSRA)에서 다운받아 아래의 폴더에 이동시키시면 됩니다.
 
   * bbox 모델에 설치시, POSE_ROOT는 HRNet_bbox이고, keypoint 모델에 설치시, POSE_ROOT는 HRNet_keypoint입니다.
-  * 폴더 형태로 만들어야 합니다.
+  * 아래와 같은 폴더 형태로 만들어야 합니다.
   * 실험에서는 pose_coco의 pose_hrnet_w48_384x288.pth가 성능이 제일 좋아 이를 사용했습니다.
 ```
 ${POSE_ROOT}
@@ -66,7 +66,7 @@ ${POSE_ROOT}
              `-- pose_resnet_50_256x256.pth
 ```
 4. data 파일
-* data 파일 구조는 다음과 같아야 합니다. (bbox, keypoint 모두 해당)
+* data 파일 구조는 아래와 같은 구조여야 합니다. (bbox, keypoint 모두 해당)
 * 확장자 명이 없으면 폴더입니다.
 * keypoint의 경우 annotations 폴더 안에 test_annotation.pkl 파일이 필요합니다.
   * bbox model에서 test image에 대해 annotation을 생성해서 만든 폴더를 annotations 폴더 안에 넣으시면 됩니다. 
