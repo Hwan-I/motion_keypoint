@@ -68,6 +68,8 @@ ${POSE_ROOT}
 4. data 파일
 * data 파일 구조는 다음과 같아야 합니다. (bbox, keypoint 모두 해당)
 * 확장자 명이 없으면 폴더입니다.
+* keypoint의 경우 annotations 폴더 안에 test_annotation.pkl 파일이 필요합니다.
+  * bbox model에서 test image에 대해 annotation을 생성해서 만든 폴더를 annotations 폴더 안에 넣으시면 됩니다. 
 ```
 ${POSE_ROOT}
 |-- data
