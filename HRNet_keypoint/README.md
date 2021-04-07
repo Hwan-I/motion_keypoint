@@ -40,5 +40,5 @@ ${POSE_ROOT}
 * test 결과는 output_path로 나옵니다.
 * 아래 예시는 Private Score를 만드는데 사용한 코드입니다.
 ```
-python tools/test.py --cfg experiments/coco/hrnet/w48_384x288_adam_lr1e-3.yaml --output_path output/lr_0.001/coco/pose_hrnet/w48_384x288_adam_lr1e-3_02
+python tools/test.py --cfg experiments/coco/hrnet/w48_384x288_adam_lr1e-3_02.yaml --output_path output/lr_0.001/coco/pose_hrnet/w48_384x288_adam_lr1e-3_02
 ```
