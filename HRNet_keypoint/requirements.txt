@@ -3,7 +3,9 @@ opencv-python==3.4.1.15
 shapely==1.6.4
 Cython
 scipy
-pandas
+pandas==1.0.3
+numpy==1.18.1
+scikit-learn==0.23.2
 pyyaml
 json_tricks
 scikit-image
