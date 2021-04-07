@@ -14,8 +14,6 @@ import logging
 import os
 import pdb
 
-#from pycocotools.coco import COCO
-#from pycocotools.cocoeval import COCOeval
 import json_tricks as json
 import numpy as np
 
@@ -60,12 +58,38 @@ class Motion_dataset(JointsDataset):
 
     
     def __init__(self, cfg, root, image_set, is_train, phase, keypoints = None, transform=None):
+        """
+    
+        각종 변수, dataset을 정의합니다.        
+        
+        Parameters
+        ----------
+        cfg : yacs.config.cfgNode
+            config 파일
+        root : str
+            data 경로.
+        image_set : like list
+            image 파일 이름을 가진 list 객체.
+        is_train : bool
+            train 데이터인지 여부. train이면 True, valid나 test면 False.
+        phase : str
+            train인 데이터인 경우 'train', valid인 경우 'val', test인 경우 'test'
+        keypoints : numpy.narray, optional
+            keypoint 값을 가진 numpy 객체. The default is None.
+        transform : torchvision.transforms, optional
+            image에 transform을 넣는 객체. The default is None.
+            
+        Returns
+        -------
+        None.
+
+        """
         super().__init__(cfg, root, is_train, transform)
         
+
+        
+        # 각종 파라미터를 정의합니다.
         self.image_set = image_set
-        
-        # make dict
-        
         self.nms_thre = cfg.TEST.NMS_THRE
         self.is_train = is_train
         self.image_thre = cfg.TEST.IMAGE_THRE
@@ -88,24 +112,25 @@ class Motion_dataset(JointsDataset):
         self.image_set_index = [i for i in range(len(self.image_set))]
         self.num_images = len(self.image_set_index)
         logger.info('=> num_images: {}'.format(self.num_images))
-
+        
+        # keypoint 개수 정의
         self.num_joints = 24
+        
+        # 왼쪽, 오른쪽이 있는 신체 부위 class를 묶어서 pair로 정의합니다.
+            # class 번호는 Motion_dataset 함수 바로 아래의 keypoints 부분을 참고하시기 바랍니다.
         self.flip_pairs = [[1, 2], [3, 4], [5, 6], [7, 8],
                            [9, 10], [11, 12], [13, 14], [15, 16],
                            [18, 19], [22, 23]]
         self.parent_ids = None
+        
+        # 상체 부분 keypoint class 번호
         self.upper_body_ids = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 17, 18, 19,
                                20, 21)
+        
+        # 하체 부분 keypoint class 번호
         self.lower_body_ids = (11, 12, 13, 14, 15, 16, 22, 23)
-        """
-        self.joints_weight = np.array(
-            [
-                1., 1., 1., 1., 1., 1., 1., 1.2, 1.2,
-                1.5, 1.5, 1., 1., 1.2, 1.2, 1.5, 1.5
-            ],
-            dtype=np.float32
-        ).reshape((self.num_joints, 1))
-        """
+        
+        # image, keypoint, bbox를 가공하여 input data와 target 데이터를 정의합니다.
         self.db = self._get_db()
 
         if is_train and cfg.DATASET.SELECT_DATA:
@@ -116,6 +141,7 @@ class Motion_dataset(JointsDataset):
 
 
     def _get_db(self):
+
         if self.is_train or self.use_gt_bbox:
             # use ground truth bbox
             gt_db = self._load_coco_keypoint_annotations()
@@ -128,17 +154,21 @@ class Motion_dataset(JointsDataset):
     def _load_coco_keypoint_annotations(self):
         """ ground truth bbox and keypoints """
         gt_db = []
+        
+        # annotation 데이터를 가져옵니다.
         with open(self.root + '/annotations/train_annotation.pkl', 'rb') as f:
             anns = pickle.load(f)
         
+        # file 이름을 key로, file 이름에 해당하는 index 값을 value 값으로 하는 dict를 만듭니다.
         anns_name_dict = {}
         for i in range(len(anns)) :
             anns_name_dict[anns[i]['filename']] = i
-
+            
         for i in range(len(self.image_set)):
             name = self.image_set[i]
             index = anns_name_dict[name]
-
+            
+            # annotation 값을 활용하여 image, target 값을 변형시킵니다.
             result = self._load_coco_keypoint_annotation_kernal(anns[index], i)
             if result != None :
                 gt_db.append(result)
@@ -162,7 +192,7 @@ class Motion_dataset(JointsDataset):
         
         # sanitize bboxes
         x, y, w, h = obj['bbox']
-
+        
         x1 = np.max((0, x))
         y1 = np.max((0, y))
         x2 = np.min((width - 1, x1 + np.max((0, w - 1))))
@@ -171,7 +201,9 @@ class Motion_dataset(JointsDataset):
             obj['clean_bbox'] = [x1, y1, x2-x1, y2-y1]
         else :
             return None
-
+        
+        # target data를 3d로 만듭니다.
+            # 원래는 z축에 사람이 잘 보이는지 여부를 넣어야 하지만 여기선 생략했습니다.
         joints_3d = np.zeros((self.num_joints, 3), dtype=np.float)
         joints_3d_vis = np.zeros((self.num_joints, 3), dtype=np.float)
         for ipt in range(self.num_joints):
@@ -185,7 +217,8 @@ class Motion_dataset(JointsDataset):
             joints_3d_vis[ipt, 2] = 0
         
         image_path = f'/images/train_imgs/{self.image_set[i]}'
-
+        
+        # image의 center 값, scale 값을 추출합니다.
         center, scale = self._box2cs(obj['clean_bbox'][:4])
         
         rec = {
@@ -201,10 +234,48 @@ class Motion_dataset(JointsDataset):
         return rec
 
     def _box2cs(self, box):
+        """
+        
+        box를 입력받아 center, scale 값을 반환하는 함수로 연결시켜줍니다.
+
+        Parameters
+        ----------
+        box : like list
+            [x_min, y_min, width, height] 값을 가진 bbox 객체입니다.
+
+        Returns
+        -------
+        TYPE
+            center, scale 값을 반환하는 함수 값을 반환합니다.
+
+        """
         x, y, w, h = box[:4]
         return self._xywh2cs(x, y, w, h)
 
     def _xywh2cs(self, x, y, w, h):
+        """
+        image의 center, scale 값을 추출합니다.
+
+        Parameters
+        ----------
+        x : float
+            bbox의 x_min 값.
+        y : float
+            bbox의 y_min 값
+        w : float
+            bbox의 너비 값입니다.
+        h : float
+            bbox의 높이 값입니다.
+
+        Returns
+        -------
+        center : float
+            image의 중앙값입니다.
+        scale : TYPE
+            원래 image 크기 대비 bbox 크기에 따라 scaling 하는 값입니다.
+
+        """
+        
         center = np.zeros((2), dtype=np.float32)
         center[0] = x + w * 0.5
         center[1] = y + h * 0.5
@@ -264,9 +335,6 @@ class Motion_dataset(JointsDataset):
         logger.info('=> Total boxes after fliter low score@{}: {}'.format(
             self.image_thre, num_boxes))
         return kpt_db
-
-
-    
 
     def _write_coco_keypoint_results(self, keypoints, res_file):
         data_pack = [
@@ -330,19 +398,3 @@ class Motion_dataset(JointsDataset):
             cat_results.extend(result)
 
         return cat_results
-
-    def _do_python_keypoint_eval(self, res_file, res_folder):
-        coco_dt = self.coco.loadRes(res_file)
-        coco_eval = COCOeval(self.coco, coco_dt, 'keypoints')
-        coco_eval.params.useSegm = None
-        coco_eval.evaluate()
-        coco_eval.accumulate()
-        coco_eval.summarize()
-
-        stats_names = ['AP', 'Ap .5', 'AP .75', 'AP (M)', 'AP (L)', 'AR', 'AR .5', 'AR .75', 'AR (M)', 'AR (L)']
-
-        info_str = []
-        for ind, name in enumerate(stats_names):
-            info_str.append((name, coco_eval.stats[ind]))
-
-        return info_str

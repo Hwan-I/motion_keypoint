@@ -26,8 +26,40 @@ logger = logging.getLogger(__name__)
 
 def train(config, device, train_loader, model, criterion, optimizer, epoch,
           output_dir, tb_log_dir, writer_dict):
-
+    """
     
+    1 epoch train 시킵니다.
+
+    Parameters
+    ----------
+    config : yacs.config.CfgNode
+        config 파일입니다.
+    device : torch.device
+        GPU 사용시 데이터를 GPU에 넣어주는 객체입니다.
+    train_loader : torch.utils.data.dataloader.DataLoader
+        train data Loader.
+    model : model
+        학습하는 모델 객체입니다.
+    criterion : torch.nn.modules.loss
+        torch의 loss 객체입니다.
+    optimizer : torch.optim
+        torch의 optimizer 객체입니다.
+    epoch : int
+        현재 epoch 값입니다.
+    output_dir : str
+        결과값이 저장될 경로입니다.
+    tb_log_dir : str
+        log 파일 위치입니다.
+    writer_dict : dict
+        실험 기록 dict입니다.
+    
+    Returns
+    -------
+    losses.avg : float
+        loss의 평균값 입니다.
+
+    """
+
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
@@ -35,23 +67,26 @@ def train(config, device, train_loader, model, criterion, optimizer, epoch,
 
     # switch to train mode
     model.train()
-
+    
     end = time.time()
     for i, (input, target, target_weight, meta) in enumerate(train_loader):
+        
         # measure data loading time
         data_time.update(time.time() - end)
         
+        # input과 bbox 객체를 GPU에 넣을 수 있는 객체로 만듭니다.
         input = input.to(device)
         input = input.float()
         target = target.to(device)
         target = target.float()
-        
-        # compute output
+
         outputs = model(input)
-
+        
         target = target.cuda(non_blocking=True)
+        
+        # target_weight를 반영합니다. 기본값은 0으로 되어있어 영향을 미치지 않습니다.
         target_weight = target_weight.cuda(non_blocking=True)
-
+        
         if isinstance(outputs, list):
             loss = criterion(outputs[0], target, target_weight)
             for output in outputs[1:]:
@@ -59,10 +94,7 @@ def train(config, device, train_loader, model, criterion, optimizer, epoch,
         else:
             output = outputs
             loss = criterion(output, target, target_weight)
-
-
-        # loss = criterion(output, target, target_weight)
-
+            
         # compute gradient and do update step
         optimizer.zero_grad()
         loss.backward()
@@ -105,10 +137,46 @@ def train(config, device, train_loader, model, criterion, optimizer, epoch,
 
 def validate(config, device, val_loader, val_dataset, model, criterion, output_dir,
              tb_log_dir, writer_dict=None):
+    """
+    valid data를 모델에 넣어 모델을 평가합니다.
+
+    Parameters
+    ----------
+    config : yacs.config.CfgNode
+        config 파일입니다.
+    device : torch.device
+        GPU 사용시 데이터를 GPU에 넣어주는 객체입니다.
+    val_loader : torch.utils.data.dataloader.DataLoader
+        validation data Loader.
+    val_dataset : dataset.dataset
+        validation dataset.
+    model : model
+        학습하는 모델 객체입니다.
+    criterion : torch.nn.modules.loss
+        torch의 loss 객체입니다.
+    output_dir : str
+        결과값이 저장될 경로입니다.
+    tb_log_dir : str
+        log 파일 위치입니다.
+    writer_dict : dict, optional
+        실험 기록 dict입니다. The default is None.
+
+    Returns
+    -------
+    losses.avg : float
+        예측된 heatmap loss의 평균값입니다.
+
+    f_losses.avg : float
+        예측된 keypoint loss의 평균값입니다.
+
+    """
+    
+    
     batch_time = AverageMeter()
     losses = AverageMeter()
     acc = AverageMeter()
     f_losses = AverageMeter()
+    
     # switch to evaluate mode
     model.eval()
     
@@ -116,7 +184,8 @@ def validate(config, device, val_loader, val_dataset, model, criterion, output_d
     with torch.no_grad():
         end = time.time()
         for i, (input, target, target_weight, meta) in enumerate(val_loader):
-            # compute output
+            
+            # input과 bbox 객체를 GPU에 넣을 수 있는 객체로 만듭니다.
             input = input.to(device)
             input = input.float()
             target = target.to(device)
@@ -127,7 +196,9 @@ def validate(config, device, val_loader, val_dataset, model, criterion, output_d
                 output = outputs[-1]
             else:
                 output = outputs
-
+            
+            # 만약 TEST도 FLIP한다면 적용하는 옵션입니다.
+            # 기본적으로는 False로 되어있어 통과합니다.
             if config.TEST.FLIP_TEST:
                 input_flipped = input.flip(3)
                 outputs_flipped = model(input_flipped)
@@ -148,7 +219,7 @@ def validate(config, device, val_loader, val_dataset, model, criterion, output_d
                         output_flipped.clone()[:, :, :, 0:-1]
 
                 output = (output + output_flipped) * 0.5
-
+            
             target = target.cuda(non_blocking=True)
             target_weight = target_weight.cuda(non_blocking=True)
             
@@ -165,21 +236,23 @@ def validate(config, device, val_loader, val_dataset, model, criterion, output_d
             # measure elapsed time
             batch_time.update(time.time() - end)
             end = time.time()
-
+            
+            # heatmap을 원래 keypoint 데이터로 만들기 위해 meta 데이터의 center, scale 값을 구합니다.
             c = meta['center'].numpy()
             s = meta['scale'].numpy()
-
+            
+            # 예측된 heatmap을 keypoint 데이터로 만듭니다.
             preds, maxvals = get_final_preds(
                 config, output.clone().cpu().numpy(), c, s)
             
-            temp_trues, t_maxvals = get_final_preds(
-                config, target.clone().cpu().numpy(), c, s)
 
             criterion2 = torch.nn.MSELoss()
             
             trues = meta['origin'][:,:,:2]
 
             trues = trues.reshape(trues.shape[0],-1)
+            
+            # 예측된 keypoint 값을 실제 keypoint 값과 비교합니다.
             f_loss = criterion2(torch.from_numpy(preds.reshape(preds.shape[0],-1)), trues)
             f_losses.update(f_loss.item(), num_images)
             
@@ -211,7 +284,7 @@ def validate(config, device, val_loader, val_dataset, model, criterion, output_d
             
             writer_dict['valid_global_steps'] = global_steps + 1
 
-
+    # 예측된 heatmap 값, keypoint 값을 반환합니다.
     return losses.avg, f_losses.avg
 
 

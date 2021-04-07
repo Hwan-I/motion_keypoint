@@ -28,14 +28,35 @@ logger = logging.getLogger(__name__)
 
 class JointsDataset(Dataset):
     def __init__(self, cfg, root, image_set, is_train, transform=None):
+        """
+        
+        각종 변수, dataset을 정의합니다.      
+
+        Parameters
+        ----------
+        cfg : yacs.config.cfgNode
+            config 파일
+        root : str
+            data 경로.
+        image_set : like list
+            image 파일 이름을 가진 list 객체.
+        is_train : bool
+            train 데이터인지 여부. train이면 True, valid나 test면 False.
+        transform : torchvision.transforms, optional
+            image에 transform을 넣는 객체. The default is None.
+
+        Returns
+        -------
+        None.
+        
+        """
         self.num_joints = 0
         self.pixel_std = 200
         self.flip_pairs = []
         self.parent_ids = []
 
         self.root = root
-        #self.image_set = image_set
-        
+
         self.output_path = cfg.OUTPUT_DIR
         self.data_format = cfg.DATASET.DATA_FORMAT
         
@@ -63,6 +84,27 @@ class JointsDataset(Dataset):
         raise NotImplementedError
 
     def half_body_transform(self, joints, joints_vis):
+        """
+        
+        keypoint 위치를 상체 또는 하체의 일부만 활용하여
+        center, scale 값을 재정의 함
+
+        Parameters
+        ----------
+        joints : TYPE
+            DESCRIPTION.
+        joints_vis : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+        TYPE
+            DESCRIPTION.
+
+        """
+        
         upper_joints = []
         lower_joints = []
         for joint_id in range(self.num_joints):
@@ -139,12 +181,19 @@ class JointsDataset(Dataset):
         r = 0
 
         if self.is_train:
+            
+            # 일정확률로 train data를 변형시킴
+                # self.prob_half_body의 parameter 값에 따라 변형 확률 달라짐
+                
             if (np.sum(joints_vis[:, 0]) > self.num_joints_half_body
                 and np.random.rand() < self.prob_half_body):
+                
+                
                 c_half_body, s_half_body = self.half_body_transform(
                     joints, joints_vis
                 )
-
+                
+                # 둘 다 None이 아닐때만 center, scale 값을 바꿈
                 if c_half_body is not None and s_half_body is not None:
                     c, s = c_half_body, s_half_body
 
@@ -159,8 +208,11 @@ class JointsDataset(Dataset):
                 joints, joints_vis = fliplr_joints(
                     joints, joints_vis, data_numpy.shape[1], self.flip_pairs)
                 c[0] = data_numpy.shape[1] - c[0] - 1
-
+        
+        # center, scale 값등을 활용하여 image를 affine 변형 시킬 matrix를 구함
         trans = get_affine_transform(c, s, r, self.image_size)
+        
+        # input을 affine 변형
         input = cv2.warpAffine(
             data_numpy,
             trans,
@@ -169,7 +221,8 @@ class JointsDataset(Dataset):
 
         if self.transform:
             input = self.transform(input)
-
+            
+        # target data를 affine 변형 시킴
         for i in range(self.num_joints):
             if joints_vis[i, 0] > 0.0:
                 joints[i, 0:2] = affine_transform(joints[i, 0:2], trans)
@@ -178,7 +231,8 @@ class JointsDataset(Dataset):
         target = torch.from_numpy(target)
         
         target_weight = torch.from_numpy(target_weight)
-
+        
+        # meta 데이터 만듦
         meta = {
             'image': image_file,
             'filename': filename,
@@ -192,9 +246,6 @@ class JointsDataset(Dataset):
             'score': score
         }
         
-        #input = np.swapaxes(input, 1, 2)
-        #target = np.swapaxes(target, 1, 2)
-
         return input, target, target_weight, meta
 
     def select_data(self, db):
