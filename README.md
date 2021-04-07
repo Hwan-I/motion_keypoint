@@ -87,7 +87,7 @@ ${POSE_ROOT}
             |-- ...
 ```
 
-### Train and Test
+### Train and Test (이 부분은 HRNet_keypoint, HRNet_bbox에서 사용하는 config 파일이 다르기 때문에 Private Score을 유사하게 재현하고자 한다면 해당 repository의 Readme.md를 참조하시기 바랍니다)
 #### Train : 아래의 코드를 실행시키면 됩니다.
 * --cfg : config 파일을 의미합니다. config 파일에서 각종 파라미터를 수정할 수 있습니다.
   * config 파일 위치 : ${POSE_ROOT}/experiments (coco dataset를 쓴다면 ${POSE_ROOT}/experiments/coco/hrnet의 config 파일을 쓰시면 됩니다)
