@@ -23,7 +23,7 @@ conda create -n (환경 이름) python=3.6
 ```
 
 2. 패키지 설치 
-* conda activate (환
+* conda activate (환경이름)을 실행합니다.
 * HRNet_bbox나 HRNet_keypoint 폴더로 이동하여 아래의 명령어를 실행시켜주시면 됩니다. (한 곳에서만 실행시키면 양쪽 모두 사용 가능합니다)
 * cuda의 경우 cu111로 되어 있는데 이는 RTX3080 기준입니다. torch 버전만 맞추시고 cuda는 각 그래픽 카드에 맞는 버젼을 설치하시기 바랍니다.
   * [이 사이트](https://pytorch.org/get-started/previous-versions/)를 참조하시기 바랍니다.
