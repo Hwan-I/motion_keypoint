@@ -69,6 +69,7 @@ ${POSE_ROOT}
 ```
 4. data 파일
 * data 파일 구조는 아래와 같은 구조여야 합니다. (bbox, keypoint 모두 해당)
+* [여기서](https://dacon.io/competitions/official/235701/data/) 
 * 확장자 명이 없으면 폴더입니다.
 * keypoint의 경우 annotations 폴더 안에 test_annotation.pkl 파일이 필요합니다.
   * bbox model에서 test image에 대해 annotation을 생성해서 만든 폴더를 annotations 폴더 안에 넣으시면 됩니다. 
