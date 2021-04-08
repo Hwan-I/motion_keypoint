@@ -595,7 +595,7 @@ def main():
         
         test_loss = validate(
                 cfg, device, test_loader, test_data, model, criterion,
-                final_output_dir, tb_log_dir, writer_dict, lamb=lamb
+                final_output_dir, tb_log_dir
             )
     
     print(f'test loss : {test_loss}')
