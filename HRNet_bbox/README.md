@@ -27,7 +27,3 @@ CUBLAS_WORKSPACE_CONFIG=:16:8 python tools/train.py --cfg experiments/coco/hrnet
 ```
 python tools/test.py --cfg experiments/coco/hrnet/w48_384x288_adam_lr1e-3_03_origin.yaml --output_path output/lr_0.001/coco/pose_hrnet/w48_384x288_adam_lr1e-3_03_origin
 ```
-* 만약 cuda 버전이 10.2 이상이며 CUBLAS_WORKSPACE_CONFIG=:16:8를 추가하고자 한다면 아래와 같이 명령어를 쓰시면 됩니다.
-```
-CUBLAS_WORKSPACE_CONFIG=:16:8 python tools/test.py --cfg experiments/coco/hrnet/w48_384x288_adam_lr1e-3_03_origin.yaml --output_path output/lr_0.001/coco/pose_hrnet/w48_384x288_adam_lr1e-3_03_origin
-```
