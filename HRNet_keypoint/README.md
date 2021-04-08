@@ -21,6 +21,7 @@ CUBLAS_WORKSPACE_CONFIG=:16:8 python tools/train.py --cfg experiments/coco/hrnet
 #### Test : test_imgs에 대해 실행시키는 것으로 아래의 코드를 실행시키면 됩니다.
 * test_annotation.pkl 파일이 필요힙니다.
   * bbox model에서 test.py 파일을 실행하면 output path에 생성되는데 이를 annotations 폴더에 넣어서 쓰시면 됩니다. 
+* test 결과는 output path에 생성되며 'result.csv' 파일로 만
 ```
 ${POSE_ROOT}
 |-- data
