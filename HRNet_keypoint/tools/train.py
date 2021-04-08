@@ -446,7 +446,7 @@ def main():
         
         test_loss, f_test_loss = validate(
                 cfg, device, test_loader, test_data, model, criterion,
-                final_output_dir, tb_log_dir, writer_dict
+                final_output_dir, tb_log_dir
             )
     
     # loss 결과를 pickle 파일로 따로 저장합니다.
