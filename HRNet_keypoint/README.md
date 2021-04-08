@@ -9,10 +9,14 @@
   * True : 10%를 test 데이터로 따로 빼며 나머지 데이터에서 config 파일에 명시된 TEST_RATIO 변수를 기준으로 train과 valid를 나눕니다.
   * False : test 데이터 없이 config 파일에 명시된 TEST_RATIO 변수를 기준으로 train과 valid를 나눕니다.
 * 아래 예시는 Private Score를 만드는데 사용한 코드입니다.
-
 ```
 python tools/train.py --cfg experiments/coco/hrnet/w48_384x288_adam_lr1e-3_02.yaml --test_option False
 ```
+* 만약 cuda 버전이 10.2 이상이며 CUBLAS_WORKSPACE_CONFIG=:16:8를 추가하고자 한다면 아래와 같이 명령어를 쓰시면 됩니다.
+```
+CUBLAS_WORKSPACE_CONFIG=:16:8 python tools/train.py --cfg experiments/coco/hrnet/w48_384x288_adam_lr1e-3_02.yaml --test_option False
+```
+
 
 #### Test : test_imgs에 대해 실행시키는 것으로 아래의 코드를 실행시키면 됩니다.
 * test_annotation.pkl 파일이 필요힙니다.
