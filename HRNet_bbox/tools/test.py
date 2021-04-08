@@ -137,7 +137,6 @@ def initialize_model(model_ft, cfg):
     mynet = Mynet(cfg)
     
     # 뒷부분에 추가되는 레이어의 가중치를 xavier uniform으로 초기화 합니다.
-    torch.nn.init.xavier_uniform_(mynet.keypoints_layer.weight)
     torch.nn.init.xavier_uniform_(mynet.bbox_layer.weight)
     
     # 뒷부분을 붙입니다.
