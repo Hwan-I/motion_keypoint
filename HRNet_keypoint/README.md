@@ -1,6 +1,7 @@
 #### HRNet을 활용하여 keypoint를 추정하는 모델입니다.
 * 제출에 사용한 config 파일 : w48_384x288_adam_lr1e-3_02.yaml
-* 기본적으로 train 및 test 결과는 output 폴더 안에 생
+* 기본적으로 train 및 test 결과는 output 폴더 안에 생성됩니다.
+* private score를 만들려면 학습이 중간에 끊기지 않고 끝까지 하는 것을 권장
 
 #### 앞의 Readme.md의 환경 셋팅을 마친 뒤 train과 test는 다음과 같이 하면 됩니다.(앞의 Readme.md의 방법대로 하셔도 됩니다)
 * --cfg : config 파일을 의미합니다. config 파일에서 각종 파라미터를 수정할 수 있습니다.
@@ -41,7 +42,7 @@ ${POSE_ROOT}
 
 * --cfg : config 파일을 의미합니다.
 * --output_path : model_best.pth 등 파라미터 값과 결과가 저장된 폴더 위치를 의미합니다. output 이후의 경로부터 쓰시면 됩니다.
-* test 결과는 output_path로 나옵니다. (
+* test 결과는 output_path로 나옵니다. (파일 이름 : result.csv)
 * 아래 예시는 Private Score를 만드는데 사용한 코드입니다.
 ```
 python tools/test.py --cfg experiments/coco/hrnet/w48_384x288_adam_lr1e-3_02.yaml --output_path output/lr_0.001/coco/pose_hrnet/w48_384x288_adam_lr1e-3_02
